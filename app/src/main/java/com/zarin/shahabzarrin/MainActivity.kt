@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
-    private val mediaList = mutableListOf<MediaItem>()
     private val adapter: MediaAdapter by lazy {
         MediaAdapter()
     }
@@ -61,31 +60,39 @@ class MainActivity : AppCompatActivity() {
         val videoUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         val mediaItems = mutableListOf<MediaItem>()
 
-        val projection = arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.MIME_TYPE)
+        val projection = arrayOf(
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.DATE_ADDED,
+            MediaStore.MediaColumns.MIME_TYPE
+        )
         val imagesCursor = contentResolver.query(imageUri, projection, null, null, null)
         val videosCursor = contentResolver.query(videoUri, projection, null, null, null)
 
         imagesCursor?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+            val dateColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
+                val date = cursor.getLong(dateColumn)
                 val uri = Uri.withAppendedPath(imageUri, id.toString())
-                val mediaItem = MediaItem(uri, MediaType.IMAGE)
+                val mediaItem = MediaItem(uri, MediaType.IMAGE, date)
                 mediaItems.add(mediaItem)
             }
         }
 
         videosCursor?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+            val dateColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
+                val date = cursor.getLong(dateColumn)
                 val uri = Uri.withAppendedPath(videoUri, id.toString())
-                val mediaItem = MediaItem(uri, MediaType.VIDEO)
+                val mediaItem = MediaItem(uri, MediaType.VIDEO, date)
                 mediaItems.add(mediaItem)
             }
         }
-        mediaList.addAll(mediaItems)
-        adapter.addItems(mediaList)
+        mediaItems.sortByDescending { it.date }
+        adapter.addItems(mediaItems)
     }
 
     private fun setupAdapter() {
