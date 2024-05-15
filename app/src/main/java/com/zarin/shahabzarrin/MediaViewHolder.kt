@@ -56,6 +56,15 @@ class MediaViewHolder(private val view: View) :
                 .override(300, 300)
                 .centerCrop()
                 .into(thumbnail)
+            mediaLayout.setOnClickListener {
+                isApplyFilter = if (!isApplyFilter) {
+                    thumbnail.setColorFilter(Color.RED, PorterDuff.Mode.LIGHTEN)
+                    true
+                } else {
+                    thumbnail.clearColorFilter()
+                    false
+                }
+            }
         }
     }
 
