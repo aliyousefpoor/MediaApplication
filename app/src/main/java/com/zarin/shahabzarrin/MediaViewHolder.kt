@@ -2,6 +2,8 @@ package com.zarin.shahabzarrin
 
 import android.content.ContentUris
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.net.Uri
 import android.provider.MediaStore
 import android.view.View
@@ -9,6 +11,8 @@ import android.widget.ImageView
 import android.widget.VideoView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
@@ -16,32 +20,40 @@ class MediaViewHolder(private val view: View) :
     RecyclerView.ViewHolder(view) {
     private val thumbnail: ImageView = view.findViewById(R.id.preview)
     private val playIcon: ImageView = view.findViewById(R.id.playIcon)
-    private val videoView: VideoView = view.findViewById(R.id.mediaVideo)
+    private val playView: PlayerView = view.findViewById(R.id.mediaVideo)
     private val mediaLayout: ConstraintLayout = view.findViewById(R.id.mediaLayout)
+    var exoPlayer: ExoPlayer? = null
+    var isApplyFilter = false
+
     fun bind(mediaItem: MediaItem) {
         playIcon.isVisible = mediaItem.type == MediaType.VIDEO
         if (mediaItem.type == MediaType.VIDEO) {
             val video = getVideoThumbnail(mediaItem.uri)
             thumbnail.setImageBitmap(video)
             mediaLayout.setOnClickListener {
-                if (videoView.isPlaying) {
-                    videoView.pause()
-                    videoView.isVisible = false
+                if (exoPlayer?.isPlaying == true) {
+                    exoPlayer?.release()
+                    exoPlayer = null
+                    playView.isVisible = false
                     playIcon.isVisible = true
                     thumbnail.isVisible = true
                     thumbnail.setImageBitmap(video)
                 } else {
                     playIcon.isVisible = false
-                    videoView.isVisible = true
+                    playView.isVisible = true
                     thumbnail.isVisible = false
-                    videoView.setVideoURI(mediaItem.uri)
-                    videoView.start()
+                    exoPlayer = ExoPlayer.Builder(view.context).build().apply {
+                        setMediaItem(androidx.media3.common.MediaItem.fromUri(mediaItem.uri))
+                        prepare()
+                        playWhenReady = true
+                    }
+                    playView.player = exoPlayer
                 }
             }
         } else {
             Glide.with(thumbnail.context)
                 .load(mediaItem.uri)
-                .override(300, 300) // Resize image to reduce memory usage
+                .override(300, 300)
                 .centerCrop()
                 .into(thumbnail)
         }
