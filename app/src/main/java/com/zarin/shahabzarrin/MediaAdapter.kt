@@ -35,7 +35,7 @@ class MediaAdapter() :
         if (holder.bindingAdapterPosition == currentItem?.first) {
             if (currentItem?.second?.type == MediaType.VIDEO) {
                 currentItem?.second?.let {
-                    holder.stopPlaying(it)
+                    holder.isPlayVideo(false, it)
                     currentItem = null
                 }
             } else {

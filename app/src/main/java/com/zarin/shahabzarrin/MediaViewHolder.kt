@@ -8,7 +8,6 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.view.View
 import android.widget.ImageView
-import android.widget.VideoView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import androidx.media3.exoplayer.ExoPlayer
@@ -36,23 +35,9 @@ class MediaViewHolder(
             mediaLayout.setOnClickListener {
                 itemClicked.invoke(Pair(absoluteAdapterPosition, mediaItem))
                 if (exoPlayer?.isPlaying == true) {
-                    exoPlayer?.release()
-                    exoPlayer = null
-                    playView.isVisible = false
-                    playIcon.isVisible = true
-                    thumbnail.isVisible = true
-                    thumbnail.setImageBitmap(video)
+                    isPlayVideo(false, mediaItem)
                 } else {
-                    playIcon.isVisible = false
-                    playView.isVisible = true
-                    thumbnail.isVisible = false
-                    exoPlayer?.release()
-                    exoPlayer = ExoPlayer.Builder(view.context).build().apply {
-                        setMediaItem(androidx.media3.common.MediaItem.fromUri(mediaItem.uri))
-                        prepare()
-                        playWhenReady = true
-                    }
-                    playView.player = exoPlayer
+                    isPlayVideo(true, mediaItem)
                 }
             }
         } else {
@@ -74,14 +59,27 @@ class MediaViewHolder(
         }
     }
 
-    fun stopPlaying(item: MediaItem) {
-        val video = getVideoThumbnail(item.uri)
-        exoPlayer?.release()
-        exoPlayer = null
-        playView.isVisible = false
-        playIcon.isVisible = true
-        thumbnail.isVisible = true
-        thumbnail.setImageBitmap(video)
+    fun isPlayVideo(isPlay: Boolean, mediaItem: MediaItem) {
+        if (isPlay) {
+            playIcon.isVisible = false
+            playView.isVisible = true
+            thumbnail.isVisible = false
+            exoPlayer?.release()
+            exoPlayer = ExoPlayer.Builder(view.context).build().apply {
+                setMediaItem(androidx.media3.common.MediaItem.fromUri(mediaItem.uri))
+                prepare()
+                playWhenReady = true
+            }
+            playView.player = exoPlayer
+        } else {
+            val video = getVideoThumbnail(mediaItem.uri)
+            exoPlayer?.release()
+            exoPlayer = null
+            playView.isVisible = false
+            playIcon.isVisible = true
+            thumbnail.isVisible = true
+            thumbnail.setImageBitmap(video)
+        }
     }
 
     private fun getVideoThumbnail(uri: Uri): Bitmap? {
