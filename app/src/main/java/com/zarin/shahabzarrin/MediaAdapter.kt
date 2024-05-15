@@ -4,8 +4,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 
-class MediaAdapter : RecyclerView.Adapter<MediaViewHolder>() {
-    private val items = ArrayList<String>()
+class MediaAdapter(private val items: List<MediaItem>) :
+    RecyclerView.Adapter<MediaViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.media_item, parent, false)
         return MediaViewHolder(view)
@@ -16,6 +16,6 @@ class MediaAdapter : RecyclerView.Adapter<MediaViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
-        holder.bind()
+        holder.bind(items[position])
     }
 }
