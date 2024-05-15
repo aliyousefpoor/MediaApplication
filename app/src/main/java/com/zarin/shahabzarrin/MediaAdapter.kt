@@ -7,10 +7,13 @@ import androidx.recyclerview.widget.RecyclerView
 class MediaAdapter() :
     RecyclerView.Adapter<MediaViewHolder>() {
     private val items = ArrayList<MediaItem>()
+    private var currentItem: Pair<Int, MediaItem>? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.media_item, parent, false)
-        return MediaViewHolder(view)
+        return MediaViewHolder(view) {
+            currentItem = it
+        }
     }
 
     override fun getItemCount(): Int {
@@ -25,5 +28,20 @@ class MediaAdapter() :
         items.clear()
         items.addAll(mediaItems)
         notifyDataSetChanged()
+    }
+
+    override fun onViewRecycled(holder: MediaViewHolder) {
+        super.onViewRecycled(holder)
+        if (holder.bindingAdapterPosition == currentItem?.first) {
+            if (currentItem?.second?.type == MediaType.VIDEO) {
+                currentItem?.second?.let {
+                    holder.stopPlaying(it)
+                    currentItem = null
+                }
+            } else {
+                holder.thumbnail.clearColorFilter()
+                currentItem = null
+            }
+        }
     }
 }

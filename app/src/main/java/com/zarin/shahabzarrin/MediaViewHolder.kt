@@ -16,9 +16,12 @@ import androidx.media3.ui.PlayerView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
-class MediaViewHolder(private val view: View) :
+class MediaViewHolder(
+    private val view: View,
+    private val itemClicked: (Pair<Int, MediaItem>) -> Unit
+) :
     RecyclerView.ViewHolder(view) {
-    private val thumbnail: ImageView = view.findViewById(R.id.preview)
+    val thumbnail: ImageView = view.findViewById(R.id.preview)
     private val playIcon: ImageView = view.findViewById(R.id.playIcon)
     private val playView: PlayerView = view.findViewById(R.id.mediaVideo)
     private val mediaLayout: ConstraintLayout = view.findViewById(R.id.mediaLayout)
@@ -31,6 +34,7 @@ class MediaViewHolder(private val view: View) :
             val video = getVideoThumbnail(mediaItem.uri)
             thumbnail.setImageBitmap(video)
             mediaLayout.setOnClickListener {
+                itemClicked.invoke(Pair(absoluteAdapterPosition, mediaItem))
                 if (exoPlayer?.isPlaying == true) {
                     exoPlayer?.release()
                     exoPlayer = null
@@ -42,6 +46,7 @@ class MediaViewHolder(private val view: View) :
                     playIcon.isVisible = false
                     playView.isVisible = true
                     thumbnail.isVisible = false
+                    exoPlayer?.release()
                     exoPlayer = ExoPlayer.Builder(view.context).build().apply {
                         setMediaItem(androidx.media3.common.MediaItem.fromUri(mediaItem.uri))
                         prepare()
@@ -57,6 +62,7 @@ class MediaViewHolder(private val view: View) :
                 .centerCrop()
                 .into(thumbnail)
             mediaLayout.setOnClickListener {
+                itemClicked.invoke(Pair(absoluteAdapterPosition, mediaItem))
                 isApplyFilter = if (!isApplyFilter) {
                     thumbnail.setColorFilter(Color.RED, PorterDuff.Mode.LIGHTEN)
                     true
@@ -66,6 +72,16 @@ class MediaViewHolder(private val view: View) :
                 }
             }
         }
+    }
+
+    fun stopPlaying(item: MediaItem) {
+        val video = getVideoThumbnail(item.uri)
+        exoPlayer?.release()
+        exoPlayer = null
+        playView.isVisible = false
+        playIcon.isVisible = true
+        thumbnail.isVisible = true
+        thumbnail.setImageBitmap(video)
     }
 
     private fun getVideoThumbnail(uri: Uri): Bitmap? {
